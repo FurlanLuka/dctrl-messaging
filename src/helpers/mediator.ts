@@ -96,8 +96,6 @@ export class MediatorAgent {
     connection.onmessage = async (event) => {
       const message = JSON.parse(event.data);
 
-      console.log("MESSAGE NEW", message);
-
       if (message.type === "queue_fetched") {
         for (const event of message.data) {
           const decryptedMessageData = await decrypt(
@@ -107,13 +105,7 @@ export class MediatorAgent {
           );
           const messageData = JSON.parse(decryptedMessageData);
 
-          console.log("Queue fetched", {
-            ...event,
-            messageData,
-          });
-
           this.ackEvent(event.id);
-          console.log("Event acknowledged");
           this.sendSaveEvent(
             event.id,
             event.recipient,
@@ -122,12 +114,8 @@ export class MediatorAgent {
             event.stream_id,
             event.created_at
           );
-          console.log("Event saved");
           this.fetchStream(event.stream_id);
-          console.log("Stream fetched");
         }
-      } else {
-        console.log("Received message", message);
       }
 
       if (message.type === "stream_fetched") {
@@ -148,26 +136,23 @@ export class MediatorAgent {
             })
           );
 
-          console.log("decrypted", decryptedEvents);
-
           listener(message.stream_id, decryptedEvents, this);
         });
       }
     };
 
     connection.onclose = () => {
-      console.log("Disconnected from mediator", mediatorUrl);
       this.mediatorConnections.delete(mediatorUrl);
     };
   }
 
-  sendEvent<T extends Record<string, any> = Record<string, any>>(
+  async sendEvent<T extends Record<string, any> = Record<string, any>>(
     recipientMediatorAgent: MediatorAgent,
     streamId: string,
     senderEvent: T,
     recipientEventModifier: Partial<T> = {}
   ) {
-    recipientMediatorAgent.sendEnqueueEvent(
+    await recipientMediatorAgent.sendEnqueueEvent(
       {
         ...senderEvent,
         ...recipientEventModifier,
@@ -175,7 +160,7 @@ export class MediatorAgent {
       streamId
     );
 
-    this.sendSaveEvent(
+    await this.sendSaveEvent(
       crypto.randomUUID(),
       recipientMediatorAgent.publicKey,
       this.publicKey,

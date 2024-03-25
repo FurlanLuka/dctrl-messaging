@@ -1,13 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { Alert, Button, Grid, GridCol, Input } from "@mantine/core";
 import { useEffect, useState } from "react";
-import { useIdentityStore } from "../data/identity";
+import { UseIdentityStore } from "../data/identity";
 import { useRecipientStore } from "../data/recipient";
 import { Chat } from "../components/chat";
 import { ChatList } from "../components/chatList";
 
-export const Messaging = () => {
-  const identity = useIdentityStore((state) => state);
+export interface MessagingProps {
+  identity: UseIdentityStore;
+}
+
+export const Messaging: React.FC<MessagingProps> = ({ identity }) => {
   const recipient = useRecipientStore((state) => state);
 
   const [recipientUrl, setRecipientUrl] = useState("");
@@ -51,10 +54,7 @@ export const Messaging = () => {
       <Grid>
         <GridCol>
           {identity.mediatorAgent && recipient.mediatorAgent && (
-            <ChatList
-              identityMediatorAgent={identity.mediatorAgent}
-              recipientMediatorAgent={recipient.mediatorAgent}
-            />
+            <ChatList identityMediatorAgent={identity.mediatorAgent} />
           )}
         </GridCol>
 

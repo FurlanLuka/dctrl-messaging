@@ -47,6 +47,8 @@ export const processListInitializerEventStream = <
       [data.event.id]: {
         state: initializerEventProcessor(data),
         status: DataStatus.Success,
+        initialized: true,
+        mutated: false,
         initializerEvent: data,
         mutationEventStream: [],
       },
@@ -111,6 +113,8 @@ export const processListItemModifierEventStream = <
     state: updatedListItem,
     status: DataStatus.Success,
     initializerEvent: listItem.initializerEvent,
+    initialized: true,
+    mutated: true,
     mutationEventStream: eventStream,
   };
 

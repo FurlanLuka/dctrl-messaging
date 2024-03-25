@@ -17,7 +17,7 @@ interface UseChatStore {
   createChat: (
     identityMediatorAgent: MediatorAgent,
     recipientMediatorAgent: MediatorAgent
-  ) => Promise<void>;
+  ) => Promise<string>;
   fetchChatList: (identityMediatorAgent: MediatorAgent) => Promise<void>;
   updateChat: (
     identityMediatorAgent: MediatorAgent,
@@ -40,11 +40,13 @@ export const useChatStore = create<UseChatStore>((set, get) => ({
     identityMediatorAgent: MediatorAgent,
     recipientMediatorAgent: MediatorAgent
   ) => {
-    identityMediatorAgent.sendEvent(
+    const id: string = crypto.randomUUID();
+
+    await identityMediatorAgent.sendEvent(
       recipientMediatorAgent,
       initializerEventStreamId,
       {
-        id: crypto.randomUUID(),
+        id,
         type: "create_chat",
         recipientAlias: recipientMediatorAgent.alias,
       },
@@ -52,6 +54,8 @@ export const useChatStore = create<UseChatStore>((set, get) => ({
         recipientAlias: identityMediatorAgent.alias,
       }
     );
+
+    return id;
   },
   updateChat: async (
     identityMediatorAgent: MediatorAgent,

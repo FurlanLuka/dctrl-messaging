@@ -28,7 +28,7 @@ export interface RegisterMediatorData {
   mediatorUrl: string;
 }
 
-interface UseIdentityStore {
+export interface UseIdentityStore {
   data: Identity | null;
   dataStatus: DataStatus;
   mediatorAgent: MediatorAgent | null;
@@ -137,6 +137,8 @@ export const useIdentityStore = create(
           mediatorAgent.closeMediatorConnections();
           return;
         }
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         set(() => ({ mediatorAgent }));
       },

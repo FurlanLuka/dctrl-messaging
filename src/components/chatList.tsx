@@ -1,27 +1,48 @@
-import { Button, List, Title } from "@mantine/core";
-import { MediatorAgent } from "../helpers/mediator";
+import {
+  Badge,
+  NavLink,
+  NavLinkProps,
+  PolymorphicComponentProps,
+  Title,
+} from "@mantine/core";
 import { useChatStore } from "../data/chat-list/store";
 import { useEffect } from "react";
+import { MediatorAgent } from "../helpers/mediator";
+import { DataStatus } from "../data/interfaces";
+import { useNavigate } from "react-router-dom";
+import { IconChevronRight } from "@tabler/icons-react";
+
+const ChatLink = (
+  props: Partial<PolymorphicComponentProps<"a", NavLinkProps>> & {
+    path: string;
+  }
+) => {
+  const navigate = useNavigate();
+
+  return <NavLink {...props} onClick={() => navigate(props.path)} />;
+};
 
 interface ChatListProps {
-  identityMediatorAgent: MediatorAgent;
-  recipientMediatorAgent: MediatorAgent;
+  identityMediatorAgent: MediatorAgent | null;
 }
 
 export const ChatList: React.FC<ChatListProps> = ({
   identityMediatorAgent,
-  recipientMediatorAgent,
 }: ChatListProps) => {
   const fetchChatList = useChatStore((state) => state.fetchChatList);
-  const updateChat = useChatStore((state) => state.updateChat);
   const chatList = useChatStore((state) => state.chats);
 
   useEffect(() => {
-    console.log(chatList.status);
-    if (chatList.status === "pending") {
-      fetchChatList(identityMediatorAgent);
+    if (identityMediatorAgent === null) {
+      return;
     }
-  }, [chatList.status]);
+
+    if (chatList.status !== DataStatus.Pending) {
+      return;
+    }
+
+    fetchChatList(identityMediatorAgent);
+  }, [chatList.status, identityMediatorAgent]);
 
   if (chatList === null || chatList.state === null) {
     return (
@@ -33,31 +54,39 @@ export const ChatList: React.FC<ChatListProps> = ({
 
   return (
     <>
-      <Title order={3}>Chat List</Title>
-      <List>
-        {Object.keys(chatList.state).map((chatId) => {
-          const chat = chatList.state![chatId];
+      {Object.keys(chatList.state).map((chatId) => {
+        const chat = chatList.state[chatId];
 
-          return (
-            <List.Item key={chatId} p={2}>
-              {chat!.state?.recipientAlias} - {chat!.state?.title}{" "}
-              <Button
-                size=""
-                onClick={() => {
-                  updateChat(
-                    identityMediatorAgent,
-                    recipientMediatorAgent,
-                    chatId,
-                    "New Title"
-                  );
-                }}
-              >
-                Rename
-              </Button>
-            </List.Item>
-          );
-        })}
-      </List>
+        if (chat === undefined) {
+          return null;
+        }
+
+        return (
+          //   <List.Item key={chatId} p={2}>
+          //     {chat!.state?.recipientAlias} - {chat!.state?.title}{" "}
+          //   </List.Item>
+          <ChatLink
+            key={chatId}
+            path={`/chat/${chatId}`}
+            label={`${chat!.state?.title}`}
+            description={chat!.state?.recipientAlias}
+            leftSection={
+              <Badge size="xs" color="blue" circle>
+                !
+              </Badge>
+            }
+            rightSection={
+              <IconChevronRight
+                size="0.8rem"
+                stroke={1.5}
+                className="mantine-rotate-rtl"
+              />
+            }
+            bg={"#F2F2F2"}
+            mb={3}
+          />
+        );
+      })}
     </>
   );
 };

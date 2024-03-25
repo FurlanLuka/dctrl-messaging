@@ -12,6 +12,8 @@ export interface EventStream<T> {
   status: DataStatus;
   initializerEvent: MediatorAgentEvent | null;
   mutationEventStream: MediatorAgentEvent[];
+  initialized: boolean;
+  mutated: boolean;
 }
 
 export interface ListState<T> {

@@ -23,7 +23,13 @@ export const useRecipientStore = create<UseRecipientStore>((set, get) => ({
   dataStatus: DataStatus.Pending,
   mediatorAgent: null,
   resolveRecipient: async (recipientUrl: string) => {
+    const mediatorAgent: MediatorAgent | null = get().mediatorAgent;
+
     const recipient = await axios.get(recipientUrl);
+
+    if (mediatorAgent !== null) {
+      mediatorAgent.closeMediatorConnections();
+    }
 
     set(() => ({
       data: {
@@ -31,6 +37,7 @@ export const useRecipientStore = create<UseRecipientStore>((set, get) => ({
         alias: recipient.data.data.alias,
         mediators: recipient.data.data.mediator_addr,
       },
+      mediatorAgent: null,
       dataStatus: DataStatus.Success,
     }));
   },

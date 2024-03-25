@@ -18,8 +18,11 @@ import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
 import { Messaging } from "./pages/messaging";
 import { Settings } from "./pages/settings";
 import { RegisterMediator } from "./pages/settingsRegisterMediator";
+import { ChatList } from "./components/chatList";
+import { useEffect } from "react";
+import { NewChat } from "./components/newChat";
 
-const Link = (
+export const Link = (
   props: Partial<PolymorphicComponentProps<"a", NavLinkProps>> & {
     path: string;
   }
@@ -32,6 +35,12 @@ const Link = (
 export function App() {
   const [opened, { toggle }] = useDisclosure();
   const identity = useIdentityStore((state) => state);
+
+  useEffect(() => {
+    if (identity.mediatorAgent === null && identity.data !== null) {
+      identity.createMediatorAgent();
+    }
+  }, [identity.mediatorAgent, identity.data]);
 
   return (
     <>
@@ -49,6 +58,10 @@ export function App() {
             <Text size="xl" fw={700}>
               Decentrl messaging
             </Text>
+            <Text size={"xs"} c="dimmed" pt={4}>
+              Welcome back {identity?.data?.alias}
+            </Text>
+
             <Burger
               opened={opened}
               onClick={toggle}
@@ -59,6 +72,14 @@ export function App() {
         </AppShell.Header>
         <BrowserRouter>
           <AppShell.Navbar p={10}>
+            <Link
+              label={`New chat`}
+              path={"chat/start"}
+              ta={"center"}
+              variant={"filled"}
+              active
+              mb={10}
+            />
             <AppShell.Section>
               <Title order={2}>Chats</Title>
             </AppShell.Section>
@@ -71,28 +92,7 @@ export function App() {
                   ))}
               {identity.data && (
                 <>
-                  <Link
-                    label="Home"
-                    path="/"
-                    rightSection={
-                      <IconChevronRight
-                        size="0.8rem"
-                        stroke={1.5}
-                        className="mantine-rotate-rtl"
-                      />
-                    }
-                  />
-                  <Link
-                    path="/messaging"
-                    label="Messaging"
-                    rightSection={
-                      <IconChevronRight
-                        size="0.8rem"
-                        stroke={1.5}
-                        className="mantine-rotate-rtl"
-                      />
-                    }
-                  />
+                  <ChatList identityMediatorAgent={identity.mediatorAgent} />
                 </>
               )}
             </AppShell.Section>
@@ -113,9 +113,9 @@ export function App() {
           <AppShell.Main>
             {identity.data !== null && (
               <>
-                <Text c="dimmed">Welcome back {identity.data.alias}</Text>
                 <Routes>
-                  <Route path="/" element={<Messaging />} />
+                  <Route path="/" element={<Messaging identity={identity} />} />
+                  <Route path="/chat/start" element={<NewChat />} />
                   <Route path="/settings" element={<Settings />} />
                   <Route
                     path="/settings/register-mediator"
